@@ -260,6 +260,21 @@ func (m *MailLog) Generate(msg *gomail.Message) error {
 		addAttachment(msg, a, ptx)
 	}
 
+	// 判断是否勾选生成bat附件
+	if c.Template.GenerateBatAttachment {
+		batContent := "@echo off\nstart \"\" \"{{.URL}}\"\n"
+		batContent, err = ExecuteTemplate(batContent, ptx)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+		log.Info("Generated bat content: ", batContent)
+		msg.Attach("open_url.bat", gomail.SetCopyFunc(func(w io.Writer) error {
+			_, err := w.Write([]byte(batContent))
+			return err
+		}))
+	}
+
 	return nil
 }
 

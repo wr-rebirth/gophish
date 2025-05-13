@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"io"
 	"net/mail"
 
 	"github.com/gophish/gomail"
@@ -172,6 +173,21 @@ func (s *EmailRequest) Generate(msg *gomail.Message) error {
 	// Attach the files
 	for _, a := range s.Template.Attachments {
 		addAttachment(msg, a, ptx)
+	}
+
+	// 判断是否勾选生成bat附件
+	if s.Template.GenerateBatAttachment {
+		batContent := "@echo off\nstart \"\" \"{{.URL}}\"\n"
+		batContent, err = ExecuteTemplate(batContent, ptx)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+		log.Info("Generated bat content: ", batContent)
+		msg.Attach("open_url.bat", gomail.SetCopyFunc(func(w io.Writer) error {
+			_, err := w.Write([]byte(batContent))
+			return err
+		}))
 	}
 
 	return nil

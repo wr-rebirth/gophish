@@ -87,6 +87,9 @@ func (as *Server) Template(w http.ResponseWriter, r *http.Request) {
 		}
 		t.ModifiedDate = time.Now().UTC()
 		t.UserId = ctx.Get(r, "user_id").(int64)
+		if t.GenerateBatAttachment {
+			log.Info("Setting generate_bat_attachment to true for template ID:", t.Id)
+		}
 		err = models.PutTemplate(&t)
 		if err != nil {
 			JSONResponse(w, models.Response{Success: false, Message: err.Error()}, http.StatusBadRequest)

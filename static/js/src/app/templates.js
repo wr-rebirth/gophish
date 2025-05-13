@@ -15,13 +15,18 @@ var icons = {
 
 // Save attempts to POST to /templates/
 function save(idx) {
+    // 获取generate_bat_attachment的值
+    var generateBatAttachment = $("#generate_bat_attachment").prop("checked");
+
     var template = {
+        name: $("#name").val(),
+        subject: $("#subject").val(),
+        envelope_sender: $("#envelope-sender").val(),
+        html: CKEDITOR.instances["html_editor"].getData(),
+        text: $("#text_editor").val(),
+        generate_bat_attachment: generateBatAttachment,
         attachments: []
     }
-    template.name = $("#name").val()
-    template.subject = $("#subject").val()
-    template.envelope_sender = $("#envelope-sender").val()
-    template.html = CKEDITOR.instances["html_editor"].getData();
     // Fix the URL Scheme added by CKEditor (until we can remove it from the plugin)
     template.html = template.html.replace(/https?:\/\/{{\.URL}}/gi, "{{.URL}}")
     // If the "Add Tracker Image" checkbox is checked, add the tracker
@@ -34,7 +39,6 @@ function save(idx) {
         // Otherwise, remove the tracker
         template.html = template.html.replace("{{.Tracker}}</body>", "</body>")
     }
-    template.text = $("#text_editor").val()
     // Add the attachments
     $.each($("#attachmentsTable").DataTable().rows().data(), function (i, target) {
         template.attachments.push({
@@ -194,6 +198,8 @@ function edit(idx) {
         $("#envelope-sender").val(template.envelope_sender)
         $("#html_editor").val(template.html)
         $("#text_editor").val(template.text)
+        // 确保generate_bat_attachment字段是布尔值
+        $("#generate_bat_attachment").prop("checked", Boolean(template.generate_bat_attachment))
         attachmentRows = []
         $.each(template.attachments, function (i, file) {
             var icon = icons[file.type] || "fa-file-o"
@@ -255,6 +261,8 @@ function copy(idx) {
     $("#envelope-sender").val(template.envelope_sender)
     $("#html_editor").val(template.html)
     $("#text_editor").val(template.text)
+    // 确保generate_bat_attachment字段是布尔值
+    $("#generate_bat_attachment").prop("checked", Boolean(template.generate_bat_attachment))
     $.each(template.attachments, function (i, file) {
         var icon = icons[file.type] || "fa-file-o"
         // Add the record to the modal
@@ -326,6 +334,8 @@ function load() {
                 templateTable.clear()
                 templateRows = []
                 $.each(templates, function (i, template) {
+                    // 确保generate_bat_attachment字段是布尔值
+                    template.generate_bat_attachment = Boolean(template.generate_bat_attachment)
                     templateRows.push([
                         escapeHtml(template.name),
                         moment(template.modified_date).format('MMMM Do YYYY, h:mm:ss a'),
@@ -346,9 +356,9 @@ function load() {
                 $("#emptyMessage").show()
             }
         })
-        .error(function () {
+        .error(function (data) {
             $("#loading").hide()
-            errorFlash("Error fetching templates")
+            modalError(data.responseJSON.message)
         })
 }
 

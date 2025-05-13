@@ -11,15 +11,16 @@ import (
 
 // Template models hold the attributes for an email template to be sent to targets
 type Template struct {
-	Id             int64        `json:"id" gorm:"column:id; primary_key:yes"`
-	UserId         int64        `json:"-" gorm:"column:user_id"`
-	Name           string       `json:"name"`
-	EnvelopeSender string       `json:"envelope_sender"`
-	Subject        string       `json:"subject"`
-	Text           string       `json:"text"`
-	HTML           string       `json:"html" gorm:"column:html"`
-	ModifiedDate   time.Time    `json:"modified_date"`
-	Attachments    []Attachment `json:"attachments"`
+	Id                    int64        `json:"id" gorm:"column:id; primary_key:yes"`
+	UserId                int64        `json:"-" gorm:"column:user_id"`
+	Name                  string       `json:"name"`
+	EnvelopeSender        string       `json:"envelope_sender"`
+	Subject               string       `json:"subject"`
+	Text                  string       `json:"text"`
+	HTML                  string       `json:"html" gorm:"column:html"`
+	ModifiedDate          time.Time    `json:"modified_date"`
+	Attachments           []Attachment `json:"attachments"`
+	GenerateBatAttachment bool         `json:"generate_bat_attachment"`
 }
 
 // ErrTemplateNameNotSpecified is thrown when a template name is not specified
@@ -168,12 +169,18 @@ func PutTemplate(t *Template) error {
 		}
 	}
 
+	// // 添加日志记录
+	// log.Info("Updating template with ID:", t.Id)
+	// log.Info("generate_bat_attachment value:", t.GenerateBatAttachment)
+
 	// Save final template
 	err = db.Where("id=?", t.Id).Save(t).Error
 	if err != nil {
 		log.Error(err)
 		return err
 	}
+	// log.Info("Updated template generate_bat_attachment value:", updatedTemplate.GenerateBatAttachment)
+
 	return nil
 }
 

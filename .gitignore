@@ -6,6 +6,8 @@
 # Folders
 _obj
 _test
+.history
+.vscode
 
 # Node Modules
 node_modules
